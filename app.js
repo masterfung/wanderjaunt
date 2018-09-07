@@ -1,26 +1,33 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+import express from 'express';
+import path from 'path';
+import logger from 'morgan';
+import bodyParser from 'body-parser';
+import flash from 'connect-flash';
+import session from 'express-session';
+import favicon from 'serve-favicon';
+import cookieParser from 'cookie-parser';
 
-var session = require('express-session');
-var flash = require('connect-flash');
+import mongoose from 'mongoose';
 
-var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost/dbproducts', { useMongoClient: true });
-require("./models/Product");
+mongoose.connect('mongodb://localhost/wanderjaunt', { useMongoClient: true });
 
-var index = require('./routes/index');
-var users = require('./routes/users');
+// import Inventory from "./models/Inventory";
+// import Property from "./models/Property";
+// import Cart from "./models/Cart";
+require('./models/Inventory');
+require('./models/Property');
+require('./models/Cart');
+require('./models/Expiration');
 
-var app = express();
+let index = require('./routes/index');
+let users = require('./routes/users');
 
-app.use(session({ cookie: { maxAge: 60000 }, 
+let app = express();
+
+app.use(session({ cookie: { maxAge: 60000 },
                   secret: 'woot',
-                  resave: false, 
+                  resave: false,
                   saveUninitialized: false}));
 
 // view engine setup
@@ -34,22 +41,21 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
- 
- app.use(flash());
 
+app.use(flash());
 
 app.use('/', index);
 app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('Not Found');
+  let err = new Error('Not Found');
   err.status = 404;
   next(err);
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use((err, req, res, next) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

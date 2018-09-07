@@ -37,10 +37,18 @@ function populatePropertyInformation(data, i, item, property, expirationArr) {
 
 		console.log('GOT TO CHANGED!!!!');
 		for (let i = 0; i < expirationArr.length; i++) {
-			item.expiration.push(expirationArr[i]);
+			if (!item.expiration.includes(expirationArr[i])) {
+				item.expiration.push(expirationArr[i]);
+			}
 		}
 
-		item.property.push(res._id);
+		if (!item.property.includes(res._id)) {
+			item.property.push(res._id);
+		}
+
+		item.save( (err, savedItem) => {
+			if (err) throw err;
+		});
 
 		Cart.findOrCreate({ association: property }, function(err, cart, created) {
 			if (err) throw err;
@@ -53,9 +61,6 @@ function populatePropertyInformation(data, i, item, property, expirationArr) {
 			res.save();
 		});
 
-		item.save( (err, savedItem) => {
-			if (err) throw err;
-		});
 
 		// item.save(function (error) {
 		// 	console.log(item);
@@ -129,33 +134,15 @@ router.get('/api/v1/importInventories', function (req, res, next) {
 			quantity: data[7] || 0,
 		});
 
-		for (let i = 8; i < 16; i++) {
-			if (data[i] > 0) {
-				let exp = [];
-				if (i === 8) {
-					populatePropertyInformation(data, i, item, listofProperties[i-8], exp);
-				} else if (i === 9) {
-					populatePropertyInformation(data, i, item, listofProperties[i-8], exp);
-				} else if (i === 10) {
-					populatePropertyInformation(data, i, item, listofProperties[i-8], exp);
-				} else if (i === 11) {
-					populatePropertyInformation(data, i, item, listofProperties[i-8], exp);
-				} else if (i === 12) {
-					populatePropertyInformation(data, i, item, listofProperties[i-8], exp);
-				} else if (i === 13) {
-					populatePropertyInformation(data, i, item, listofProperties[i-8], exp);
-				} else if (i === 14) {
-					populatePropertyInformation(data, i, item, listofProperties[i-8], exp);
-				} else if (i === 15) {
-					populatePropertyInformation(data, i, item, listofProperties[i-8], exp);
+		item.save( (err, savedItem) => {
+			if (err) throw err;
+			for (let i = 8; i < 16; i++) {
+				if (data[i] > 0) {
+					let exp = [];
+					populatePropertyInformation(data, i, savedItem, listofProperties[i-8], exp);
 				}
-			} else {
-				item.save( (err, savedItem) => {
-					if (err) throw err;
-				});
 			}
-
-		}
+		});
 
 	}).on("end", function () {
 

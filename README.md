@@ -38,6 +38,12 @@ Here are my created endpoints:
 `/api/v1/importInventories` - we have already seen this in action, imports the inventories.csv into the DB and populate existing furnitures to properties
 `/api/v1/fetchInventory` - only usable on the frontend of the site (via a browser), where you can view all the imported data from inventories.csv (minus properties information [col-i to col-p])
 `/api/v1/Cart/newOrder` - post request via content-type of application-json with at least inventory and property name (which in the schema is called association). If successful, it will give a cart ID
+```
+{
+	"inventory": ["5b9319819023b5585b4f7913"],
+	"association": "639 N. 5th Avenue"
+}
+```
 `/api/v1/Cart/:id/checkout` - moves the shopping cart from non-checkout state to checkout state and adds it to the property
 
 

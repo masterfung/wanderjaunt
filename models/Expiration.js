@@ -7,13 +7,11 @@ let threeYearsLater = function() { return new Date(Date.now() + threeYearsMS);};
 
 let expirationSchema = new Schema({
 
-	// inventory: [{type: Schema.Types.ObjectId, ref: 'Inventory'}],
-
 	start: { type: Date, default: Date.now },
 
 	expire: { type: Date, default: threeYearsLater },
 
-	name: { type: String, require: true },
+	name: { type: String, require: true }, // Item name
 
 	property : [{type: Schema.Types.ObjectId, ref: 'Property'}],
 

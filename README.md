@@ -64,4 +64,6 @@ This can easily be done by going to `http://localhost:3000/api/v1/Property/:id` 
 ## Quirks & Thoughts
 The way I modeled things and the way data ingestion is occurring, a new cart is created for each items for each property. This is why you see several saved carts associated. It would be nice to modify the logic, with more time, so it can group them into a single cart upon the first data ingestion.
 
-This was my first take on warehouse and inventory space that I designed it with basically four models (Carts, Expiration, Inventory, and Property). Each Expiration entity is created when a user adds it into the Cart or have it associated with a Property (first ingestion). I thought each Expiration entity can serve as a quantity as well but have its local understanding of when it expires. I have added the three year expiration to the model once checkout occurs.
+This was my first take on warehouse and inventory space that I designed it with basically four models (Carts, Expiration, Inventory, and Property). Each Expiration entity is created when a user adds it into the Cart or have it associated with a Property (first ingestion). I thought each Expiration entity can serve as a quantity as well but have its local understanding of when it expires. I have added the three year expiration to the model once checkout occurs. Once a cart has been checked out, re-checking out would trigger an error.
+
+Multiple inventory cart could sometimes crash the Nodemon so something you might need to restart the server and try again with the new cart-id.

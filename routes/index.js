@@ -33,23 +33,16 @@ function populatePropertyInformation(data, i, item, property, expirationArr) {
 				}
 			});
 			expirationArr.push(expirationObj._id);
+
+			Inventory.update({_id: item._id},
+				{"$addToSet" : { "expiration": expirationObj._id,
+				"property": res._id }}, (err, res) => {
+					if (err) throw err;
+				}
+			)
 		}
 
-		console.log('GOT TO CHANGED!!!!');
-		for (let i = 0; i < expirationArr.length; i++) {
-			if (!item.expiration.includes(expirationArr[i])) {
-				item.expiration.push(expirationArr[i]);
-			}
-		}
-
-		if (!item.property.includes(res._id)) {
-			item.property.push(res._id);
-		}
-
-		item.save( (err, savedItem) => {
-			if (err) throw err;
-		});
-
+			// the method findOrCreate is not fully fuctioning in Mongoose 5
 		Cart.findOrCreate({ association: property }, function(err, cart, created) {
 			if (err) throw err;
 			cart.checkOut = true;
@@ -60,16 +53,6 @@ function populatePropertyInformation(data, i, item, property, expirationArr) {
 			res.savedCart.push(cart._id);
 			res.save();
 		});
-
-
-		// item.save(function (error) {
-		// 	console.log(item);
-		// 	if (error) {
-		// 		throw error;
-		// 	}
-
-
-		// });
 
 	});
 }
@@ -180,16 +163,20 @@ router.post('/api/v1/Cart/newOrder', (req, res, next) => {
 				if (err) throw err;
 				if (furniture.quantity > 0) {
 					furniture.quantity--;
-					furniture.save();
-
-					cart.inventory.push(furniture._id);
-					cart.association = req.body.association;
-					cart.save();
-					res.json({
-						success: "Updated successfully",
-						status: 200,
-						data: cart._id
+					furniture.save( (err) => {
+						if (err) throw err;
+						cart.inventory.push(furniture._id);
+						cart.association = req.body.association;
+						cart.save( (err) => {
+							if (err) throw err;
+							res.json({
+								success: "Updated successfully",
+								status: 200,
+								data: cart._id
+							});
+						});
 					});
+
 				} else if (furniture.quantity === 0) {
 					res.json({
 						error: `${furniture.name} is not available. Please reorder and try again later.`,
@@ -206,29 +193,47 @@ router.post('/api/v1/Cart/newOrder', (req, res, next) => {
 });
 
 router.get('/api/v1/Cart/:id/checkout', (req, res, next) => {
-	console.log('ID_____*****', req.params.id);
 
 	Cart.findById(req.params.id, (err, cart) => {
 		if (err) {
 			res.status(500).json({err});
 		}
-
+		if (cart.checkOut) {
+			res.json({
+				error: "Cannot checkout on an existing cart. Please create a new one again.",
+				status: 400
+			})
+		}
 		cart.checkOut = true;
 		cart.save((err) => {
 			if (err) throw err;
 
 			Property.findOne({name: cart.association}, (err, prop) => {
 				if (err) throw err;
+				cart.inventory.forEach((inventoryID) => {
+					Inventory.findById(inventoryID, (err, item) => {
+						Cart.findById(inventoryID, (err, result) => {
+							let expirationObj = new Expiration();
+							expirationObj.name = item.name;
+							expirationObj.property.push(prop._id);
+							expirationObj.save( (err) => {
+								if (err) throw err;
+							});
+						});
+
+					});
+				});
 				prop.savedCart.push(cart._id);
-				prop.save();
+				prop.save( (err) => {
+					if (err) throw err;
+					res.json({
+						success: "Checkout successfully",
+						status: 200,
+						data: cart
+					});
+				});
 			});
 
-		});
-
-		res.json({
-			success: "Checkout successfully",
-			status: 200,
-			data: cart
 		});
 	});
 

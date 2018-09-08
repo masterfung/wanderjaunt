@@ -17,6 +17,7 @@ let inventoriesStream = fs.createReadStream(inventoriesCSVFile);
 let propertiesCSVFile = __dirname + "/../public/files/properties.csv";
 let propertiesStream = fs.createReadStream(propertiesCSVFile);
 
+// Helper function to parse and populate Inventory and Property based on Inventories.csv
 function populatePropertyInformation(data, i, item, property, expirationArr) {
 	Property.findOne({ name: property }, function (err, res) {
 		if (err) {
@@ -42,7 +43,7 @@ function populatePropertyInformation(data, i, item, property, expirationArr) {
 			)
 		}
 
-			// the method findOrCreate is not fully fuctioning in Mongoose 5
+			// the method findOrCreate is not fully working in Mongoose 5
 		Cart.findOrCreate({ association: property }, function(err, cart, created) {
 			if (err) throw err;
 			cart.checkOut = true;
@@ -66,6 +67,7 @@ router.get('/', function (req, res, next) {
 
 });
 
+/* GET property from the CSV to the DB. */
 router.get('/api/v1/importProperties', function (req, res, next) {
 
 	let propertiesCsvStream;
@@ -96,6 +98,7 @@ router.get('/api/v1/importProperties', function (req, res, next) {
 	});
 });
 
+/* GET Inventories from CSV & connects it with attributes. */
 router.get('/api/v1/importInventories', function (req, res, next) {
 
 	let inventoriesCsvStream;
@@ -138,6 +141,7 @@ router.get('/api/v1/importInventories', function (req, res, next) {
 	});
 });
 
+/* GET json result for fetch button rendering on localhost:3000 (vanity purposes). */
 router.get('/api/v1/fetchInventory', function (req, res, next) {
 
 	Inventory.find({}, [],{ sort: { _id: -1 } }, (err, inventories) => {
@@ -154,6 +158,7 @@ router.get('/api/v1/fetchInventory', function (req, res, next) {
 
 });
 
+/* POST new cart order to Cart and sends back cart id of the new. */
 router.post('/api/v1/Cart/newOrder', (req, res, next) => {
 
 	if (req.body.inventory.length > 0) {
@@ -192,6 +197,7 @@ router.post('/api/v1/Cart/newOrder', (req, res, next) => {
 
 });
 
+/* GET the cart & moves it to checkout status, assoc. exp and property. */
 router.get('/api/v1/Cart/:id/checkout', (req, res, next) => {
 
 	Cart.findById(req.params.id, (err, cart) => {
@@ -239,6 +245,7 @@ router.get('/api/v1/Cart/:id/checkout', (req, res, next) => {
 
 });
 
+// Exposes simple endpoint (details in the README)
 restify.serve(router, Inventory);
 restify.serve(router, Property);
 restify.serve(router, Cart);
